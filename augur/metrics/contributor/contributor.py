@@ -7,6 +7,32 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
+@annotate(tag='contributors_organizations')
+def contributors_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    Returns a list of organizations whose members have contributed to a project and their summed commits
+
+    DataFrame has these columns:
+    cntrb_company
+    commits
+    pull_requests
+    issues
+    commit_comments
+    pull_request_comments
+    issue_comments
+    total
+    """
+    if not begin_date:
+        begin_date = '1970-1-1 00:00:01'
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    contributors_organizationsSQL = s.sql.text("""
+    """)
+    results = pd.read_sql(contributors_organizationsSQL, self.database, params={'repo_group_id': repo_group_id, 'period': period, 
+                                                                                'begin_date': begin_date, 'end_date': end_date})
+    return results
+
 @annotate(tag='contributors')
 def contributors(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
