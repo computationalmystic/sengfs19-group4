@@ -342,3 +342,7 @@ def create_contributor_routes(server):
     server.addRepoMetric(metrics.contributors_code_development, 'contributors-code-development')
 
     server.addRepoGroupMetric(metrics.contributors_organizations, 'contributors-organizations')
+
+    server.addRepoGroupMetric(metrics.entrance_difficulty, 'entrance-difficulty')
+
+    server.addRepoGroupMetric(metrics.top_external_organizations, 'top-external-organizations')
