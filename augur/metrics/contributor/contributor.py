@@ -7,7 +7,21 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
-@annotate(tag='contributors_organizations')
+@annotate(tag='top-external-organizations')
+def top_external_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    TODO: Finish top-external-organizations metric functionality
+    """
+    return "error"
+
+@annotate(tag='entrance-difficulty')
+def entrance_difficulty(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    TODO: Finish entrance-difficulty metric functionality
+    """
+    return "error"
+
+@annotate(tag='contributors-organizations')
 def contributors_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
     Returns a list of organizations whose members have contributed to a project and their summed commits
@@ -28,6 +42,11 @@ def contributors_organizations(self, repo_group_id, repo_id=None, period='day', 
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     contributors_organizationsSQL = s.sql.text("""
+        SELECT 
+            SUM(cmt_id) as commits,
+            cmt_committer_affiliation
+        FROM augur_data.commits
+        GROUP BY cmt_committer_affiliation
     """)
     results = pd.read_sql(contributors_organizationsSQL, self.database, params={'repo_group_id': repo_group_id, 'period': period, 
                                                                                 'begin_date': begin_date, 'end_date': end_date})
