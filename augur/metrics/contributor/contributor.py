@@ -42,11 +42,12 @@ def contributors_organizations(self, repo_group_id, repo_id=None, period='day', 
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
     contributors_organizationsSQL = s.sql.text("""
-        SELECT 
-            SUM(cmt_id) as commits,
-            cmt_committer_affiliation
-        FROM augur_data.commits
-        GROUP BY cmt_committer_affiliation
+        SELECT COUNT(cmt_id) as commits, cntrb_company
+        FROM augur_data.commits as m
+        INNER JOIN augur_data.contributors as n
+        ON m.cmt_ght_author_id = n.cntrb_id
+        WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
+        GROUP BY cntrb_company
     """)
     results = pd.read_sql(contributors_organizationsSQL, self.database, params={'repo_group_id': repo_group_id, 'period': period, 
                                                                                 'begin_date': begin_date, 'end_date': end_date})
