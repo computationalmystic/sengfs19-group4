@@ -24,7 +24,7 @@ def entrance_difficulty(self, repo_group_id, repo_id=None, period='day', begin_d
 @annotate(tag='contributors-organizations')
 def contributors_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
-    Returns a list of organizations whose members have contributed to a project and their summed commits
+    Returns a list of organizations whose members have contributed to a project and their summed contributions
 
     DataFrame has these columns:
     commits
@@ -40,89 +40,89 @@ def contributors_organizations(self, repo_group_id, repo_id=None, period='day', 
         begin_date = '1970-1-1 00:00:01'
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    contributors_organizationsSQL = s.sql.text("""
-        SELECT  SUM(commits)                 AS commits,
-                SUM(issues)                  AS issues,
-                SUM(commit_comments)         AS commit_comments,
-                SUM(issue_comments)          AS issue_comments,
-                SUM(pull_requests)           AS pull_requests,
-                SUM(pull_request_comments)   AS pull_request_comments,
-                SUM(a.commits + a.issues + a.commit_comments + a.issue_comments + a.pull_requests +
-                    a.pull_request_comments) AS total, 
-                TRIM('@' from cntrb_company) as organization
-            FROM (
-                    (SELECT gh_user_id AS id,
-                            repo_id,
-                            0          AS commits,
-                            COUNT(*)   AS issues,
-                            0          AS commit_comments,
-                            0          AS issue_comments,
-                            0          AS pull_requests,
-                            0          AS pull_request_comments
-                    FROM issues
-                    WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
-                        AND created_at BETWEEN :begin_date AND :end_date
-                        AND gh_user_id IS NOT NULL
-                        AND pull_request IS NULL
-                    GROUP BY gh_user_id, repo_id)
-                    UNION ALL
-                    (SELECT cmt_ght_author_id AS id,
-                            repo_id,
-                            COUNT(*)          AS commits,
-                            0                 AS issues,
-                            0                 AS commit_comments,
-                            0                 AS issue_comments,
-                            0                 AS pull_requests,
-                            0                 AS pull_request_comments
-                    FROM commits
-                    WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
-                        AND cmt_ght_author_id IS NOT NULL
-                        AND cmt_committer_date BETWEEN :begin_date AND :end_date
-                    GROUP BY cmt_ght_author_id, repo_id)
-                    UNION ALL
-                    (SELECT cntrb_id AS id,
-                            repo_id,
-                            0        AS commits,
-                            0        AS issues,
-                            COUNT(*) AS commit_comments,
-                            0        AS issue_comments,
-                            0        AS pull_requests,
-                            0        AS pull_request_comments
-                    FROM commit_comment_ref,
-                        commits,
-                        message
-                    WHERE commit_comment_ref.cmt_id = commit_comment_ref.cmt_id
-                        AND message.msg_id = commit_comment_ref.msg_id
-                        AND repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
-                        AND created_at BETWEEN :begin_date AND :end_date
-                    GROUP BY id, repo_id)
-                    UNION ALL
-                    (
-                        SELECT message.cntrb_id AS id,
+    if not repo_id:
+        contributors_organizationsSQL = s.sql.text("""
+            SELECT  SUM(commits)                 AS commits,
+                    SUM(issues)                  AS issues,
+                    SUM(commit_comments)         AS commit_comments,
+                    SUM(issue_comments)          AS issue_comments,
+                    SUM(pull_requests)           AS pull_requests,
+                    SUM(pull_request_comments)   AS pull_request_comments,
+                    SUM(a.commits + a.issues + a.commit_comments + a.issue_comments + a.pull_requests +
+                        a.pull_request_comments) AS total, 
+                    TRIM('@' from cntrb_company) as organization
+                FROM (
+                        (SELECT gh_user_id AS id,
                                 repo_id,
-                                0                AS commits,
-                                0                AS issues,
-                                0                AS commit_comments,
-                                count(*)         AS issue_comments,
-                                0                AS pull_requests,
-                                0                AS pull_request_comments
-                        FROM issues,
-                            issue_message_ref,
-                            message
+                                0          AS commits,
+                                COUNT(*)   AS issues,
+                                0          AS commit_comments,
+                                0          AS issue_comments,
+                                0          AS pull_requests,
+                                0          AS pull_request_comments
+                        FROM issues
                         WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
-                        AND gh_user_id IS NOT NULL
-                        AND issues.issue_id = issue_message_ref.issue_id
-                        AND issue_message_ref.msg_id = message.msg_id
-                        AND issues.pull_request IS NULL
-                        AND created_at BETWEEN :begin_date AND :end_date
-                        GROUP BY id, repo_id
-                    )
-                ) a, repo, contributors
-            WHERE a.repo_id = repo.repo_id
-            GROUP BY cntrb_company
-            ORDER BY total DESC
-    """)
+                            AND created_at BETWEEN :begin_date AND :end_date
+                            AND gh_user_id IS NOT NULL
+                            AND pull_request IS NULL
+                        GROUP BY gh_user_id, repo_id)
+                        UNION ALL
+                        (SELECT cmt_ght_author_id AS id,
+                                repo_id,
+                                COUNT(*)          AS commits,
+                                0                 AS issues,
+                                0                 AS commit_comments,
+                                0                 AS issue_comments,
+                                0                 AS pull_requests,
+                                0                 AS pull_request_comments
+                        FROM commits
+                        WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
+                            AND cmt_ght_author_id IS NOT NULL
+                            AND cmt_committer_date BETWEEN :begin_date AND :end_date
+                        GROUP BY cmt_ght_author_id, repo_id)
+                        UNION ALL
+                        (SELECT cntrb_id AS id,
+                                repo_id,
+                                0        AS commits,
+                                0        AS issues,
+                                COUNT(*) AS commit_comments,
+                                0        AS issue_comments,
+                                0        AS pull_requests,
+                                0        AS pull_request_comments
+                        FROM commit_comment_ref,
+                            commits,
+                            message
+                        WHERE commit_comment_ref.cmt_id = commit_comment_ref.cmt_id
+                            AND message.msg_id = commit_comment_ref.msg_id
+                            AND repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
+                            AND created_at BETWEEN :begin_date AND :end_date
+                        GROUP BY id, repo_id)
+                        UNION ALL
+                        (
+                            SELECT message.cntrb_id AS id,
+                                    repo_id,
+                                    0                AS commits,
+                                    0                AS issues,
+                                    0                AS commit_comments,
+                                    count(*)         AS issue_comments,
+                                    0                AS pull_requests,
+                                    0                AS pull_request_comments
+                            FROM issues,
+                                issue_message_ref,
+                                message
+                            WHERE repo_id in (SELECT repo_id FROM repo WHERE repo_group_id=:repo_group_id)
+                            AND gh_user_id IS NOT NULL
+                            AND issues.issue_id = issue_message_ref.issue_id
+                            AND issue_message_ref.msg_id = message.msg_id
+                            AND issues.pull_request IS NULL
+                            AND created_at BETWEEN :begin_date AND :end_date
+                            GROUP BY id, repo_id
+                        )
+                    ) a, repo, contributors
+                WHERE a.repo_id = repo.repo_id
+                GROUP BY organization
+                ORDER BY total DESC
+        """)
     results = pd.read_sql(contributors_organizationsSQL, self.database, params={'repo_group_id': repo_group_id, 'period': period, 
                                                                                 'begin_date': begin_date, 'end_date': end_date})
     return results
