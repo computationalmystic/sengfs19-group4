@@ -42,35 +42,56 @@ def contributors_organizations(self, repo_group_id, repo_id=None, period='day', 
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if not repo_id:
         contributors_organizationsSQL = s.sql.text("""
-            SELECT  SUM(issues)		AS issues,
-					SUM(commits)	AS commits,
-                    SUM(a.issues + a.commits)   AS total,
+            SELECT  SUM(issues)		    AS issues,
+					SUM(commits)	    AS commits,
+                    SUM(issue_comments) AS issue_comments,
+                    SUM(a.issues + a.commits + a.issue_comments)   AS total,
                     organization
                 FROM (
                     (SELECT reporter_id AS id,
                             repo_id,
                             COUNT(*)   AS issues,
 					 		0		   AS commits,
+                            0          AS issue_comments,
 					 		TRIM('@' from cntrb_company) as organization
                     FROM augur_data.issues
 					INNER JOIN augur_data.contributors c
 					ON c.cntrb_id = issues.reporter_id
-                    WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=10)
+                    WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
                         AND reporter_id IS NOT NULL
                         AND pull_request IS NULL
-                    GROUP BY reporter_id, repo_id, organization)
+                        AND created_at BETWEEN :begin_date AND :end_date
+                    GROUP BY id, repo_id, organization)
                     UNION ALL
                     (SELECT cntrb_id	AS id,
                             repo_id,
                             0           AS issues,
                             COUNT(*)    AS commits,
+                            0           AS issue_comments,
                             TRIM('@' from cntrb_company) as organization
                     FROM augur_data.commits
                     INNER JOIN augur_data.contributors c
                     ON c.cntrb_email = commits.cmt_author_raw_email
-                    WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=10)
+                    WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
                         AND cmt_author_raw_email IS NOT NULL
+                        AND cmt_committer_date BETWEEN :begin_date AND :end_date
                     GROUP BY id, repo_id, organization)
+                    UNION ALL
+					(SELECT reporter_id	AS id,
+					 		repo_id,
+					 		0			AS issues,
+					 		0			AS commits,
+					 		count(*)	AS issue_comments,
+					 		TRIM('@' from cntrb_company) as organization
+					 FROM augur_data.issue_message_ref
+					 INNER JOIN augur_data.issues i
+					 ON i.issue_id = issue_message_ref.issue_id
+					 INNER JOIN augur_data.contributors c
+					 ON c.cntrb_id = i.reporter_id
+					 WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
+                        AND reporter_id IS NOT NULL
+                        AND created_at BETWEEN :begin_date AND :end_date
+					 GROUP BY id, repo_id, organization)
                 ) a, augur_data.repo
                 WHERE a.repo_id = repo.repo_id
                 GROUP BY organization
