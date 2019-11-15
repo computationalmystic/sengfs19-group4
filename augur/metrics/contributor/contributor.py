@@ -7,20 +7,6 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
-@annotate(tag='top-external-organizations')
-def top_external_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
-    """
-    TODO: Finish top-external-organizations metric functionality
-    """
-    return "error"
-
-@annotate(tag='entrance-difficulty')
-def entrance_difficulty(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
-    """
-    TODO: Finish entrance-difficulty metric functionality
-    """
-    return "error"
-
 @annotate(tag='contributors-organizations')
 def contributors_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
@@ -28,10 +14,7 @@ def contributors_organizations(self, repo_group_id, repo_id=None, period='day', 
 
     DataFrame has these columns:
     commits
-    pull_requests
     issues
-    commit_comments
-    pull_request_comments
     issue_comments
     total
     organization

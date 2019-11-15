@@ -7,6 +7,35 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
+@annotate(tag='issues-first-response')
+def issues_first_response(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    #TODO: add timeseries period and begin/end dates to query
+    """
+    Returns a timeseries of the average time between issue open and first response
+    """
+    if not begin_date:
+        begin_date = '1970-1-1 00:00:01'
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if not repo_id:
+        issuesFirstReponseSQL = s.sql.text("""
+            SELECT AVG(dif) as dif, repo
+            FROM(
+                SELECT  issues.issue_id as issue,
+                        MIN(msg_timestamp - created_at) as dif,
+                        repo_id as repo
+                FROM augur_data.issues
+                    INNER JOIN augur_data.issue_message_ref r
+                    ON r.issue_id = issues.issue_id
+                    INNER JOIN augur_data.message m
+                    ON m.msg_id = r.msg_id
+                GROUP BY issues.issue_id, repo
+            ) a
+            GROUP BY repo
+        """)
+    results = pd.read_sql(issuesFirstReponseSQL, self.database, params={'repo_id': repo_id, 'period': period,
+                                                                    'begin_date': begin_date, 'end_date': end_date})
+
 @annotate(tag='issues-first-time-opened')
 def issues_first_time_opened(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
@@ -698,7 +727,7 @@ def issues_maintainer_response_duration(self, repo_group_id, repo_id=None, begin
         issuesSQL = s.sql.text("""
             SELECT repo_id, repo_name, AVG(time_to_first_commit) as average_days_comment
             from (
-                    select repo_id,
+                    SELECT repo_id,
                             repo_name,
                             earliest_member_comments.issue_id                  as issue_id,
                             extract(day from first_response_time - created_at) as time_to_first_commit
