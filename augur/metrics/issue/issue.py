@@ -1057,7 +1057,60 @@ def abandoned_issues(self, repo_group_id, repo_id=None, period='day', begin_date
     results = pd.read_sql(abandonedSQL, self.database, params={'repo_id': repo_id, 'repo_group_id': repo_group_id, 'period': period,
                                                                  'begin_date': begin_date, 'end_date': end_date})
     return results
-    
+
+@annotate(tag='average-issues-comments')
+def average-issues-comments(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """Returns a timeseries of issues active.
+
+    :param repo_group_id: The repository's repo_group_id
+    :param repo_id: The repository's repo_id, defaults to None
+    :param period: To set the periodicity to 'day', 'week', 'month' or 'year', defaults to 'day'
+    :param begin_date: Specifies the begin date, defaults to '1970-1-1 00:00:00'
+    :param end_date: Specifies the end date, defaults to datetime.now()
+    :return: DataFrame of issues active/period
+    """
+    if not begin_date:
+        begin_date = datetime.now() - timedelta(days=60)
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    if not repo_id:
+        issues_active_SQL = s.sql.text("""
+	
+	SELECT 
+		issues.repo_id, 
+		COUNT(issues.repo_id), 
+		AVG(comment_count)
+	FROM augur_data.issues issues
+	INNER JOIN augur_data.repo repo on repo.repo_id = issues.repo_id
+	WHERE repo_group_id = '20' 
+	AND issues.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+	GROUP BY issues.repo_id;
+        """)
+
+        results = pd.read_sql(issues_active_SQL, self.database, params={'repo_group_id': repo_group_id, 'period':period,
+                                                                  'begin_date': begin_date, 'end_date':end_date})
+        return results
+
+    else:
+        issues_active_SQL = s.sql.text("""
+            SELECT
+                repo_name,
+                date_trunc(:period, issue_events.created_at) as date,
+                COUNT(issues.issue_id) AS issues
+            FROM issues, repo, issue_events
+            WHERE issues.issue_id = issue_events.issue_id
+            AND issues.repo_id = repo.repo_id
+            AND issues.repo_id = :repo_id
+            AND issue_events.created_at BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            AND issues.pull_request IS NULL
+            GROUP BY date, repo_name
+            ORDER BY date
+        """)
+
+        results = pd.read_sql(issues_active_SQL, self.database, params={'repo_id': repo_id, 'period':period,
+                                                                  'begin_date': begin_date, 'end_date':end_date})
+        return results
 
 def create_issue_metrics(metrics):
     add_metrics(metrics, __name__)
