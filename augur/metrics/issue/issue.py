@@ -8,11 +8,11 @@ import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
 @annotate(tag='issues-first-response')
-def issues_first_response(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+def issues_first_response(self, repo_group_id, repo_id=None, period='month', begin_date=None, end_date=None):
     #TODO: add timeseries period and begin/end dates to query
     """
     Returns a timeseries of the average time between issue open and first response
-
+    Each dataframe includes the timeframe (default: month) and average issue response time during that timeframe
     """
     if not begin_date:
         begin_date = '1970-1-1 00:00:01'
@@ -43,7 +43,7 @@ def issues_first_response(self, repo_group_id, repo_id=None, period='day', begin
                                                                         'begin_date': begin_date, 'end_date': end_date})
     else:
         issuesFirstReponseSQL = s.sql.text("""
-            SELECT  date_trunc('week', created_at::DATE) AS issue_creation_date, 
+            SELECT  date_trunc(:period, created_at::DATE) AS issue_creation_date, 
                     AVG(dif) AS response_time
                 FROM(
                     SELECT  issues.issue_id AS issue,
