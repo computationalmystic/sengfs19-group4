@@ -757,7 +757,7 @@ def issues_maintainer_response_duration(self, repo_group_id, repo_id=None, begin
         issuesSQL = s.sql.text("""
             SELECT repo_id, repo_name, AVG(time_to_first_commit) as average_days_comment
             from (
-                    select repo_id,
+                    SELECT repo_id,
                             repo_name,
                             earliest_member_comments.issue_id                  as issue_id,
                             extract(day from first_response_time - created_at) as time_to_first_commit
