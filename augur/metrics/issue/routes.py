@@ -963,3 +963,6 @@ def create_issue_routes(server):
                     ]
     """
     server.addRepoGroupMetric(metrics.abandoned_issues, 'abandoned_issues')
+    
+    server.addRepoGroupMetric(metrics.issue_messages_over_time, 'issue_messages_over_time')
+    
