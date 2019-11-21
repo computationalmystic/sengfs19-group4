@@ -7,6 +7,100 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
+@annotate(tag='top-external-organizations')
+def top_external_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    TODO: Finish top-external-organizations metric functionality
+    """
+    return "error"
+
+@annotate(tag='entrance-difficulty')
+def entrance_difficulty(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    TODO: Finish entrance-difficulty metric functionality
+    """
+    return "error"
+
+@annotate(tag='contributors-organizations')
+def contributors_organizations(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
+    """
+    Returns a list of organizations whose members have contributed to a project and their summed contributions
+
+    DataFrame has these columns:
+    commits
+    pull_requests
+    issues
+    commit_comments
+    pull_request_comments
+    issue_comments
+    total
+    organization
+    """
+    if not begin_date:
+        begin_date = '1970-1-1 00:00:01'
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if not repo_id:
+        contributors_organizationsSQL = s.sql.text("""
+            SELECT  SUM(issues)		    AS issues,
+					SUM(commits)	    AS commits,
+                    SUM(issue_comments) AS issue_comments,
+                    SUM(a.issues + a.commits + a.issue_comments)   AS total,
+                    organization
+                FROM (
+                    (SELECT reporter_id AS id,
+                            repo_id,
+                            COUNT(*)   AS issues,
+					 		0		   AS commits,
+                            0          AS issue_comments,
+					 		TRIM('@' from cntrb_company) as organization
+                    FROM augur_data.issues
+					INNER JOIN augur_data.contributors c
+					ON c.cntrb_id = issues.reporter_id
+                    WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
+                        AND reporter_id IS NOT NULL
+                        AND pull_request IS NULL
+                        AND created_at BETWEEN :begin_date AND :end_date
+                    GROUP BY id, repo_id, organization)
+                    UNION ALL
+                    (SELECT cntrb_id	AS id,
+                            repo_id,
+                            0           AS issues,
+                            COUNT(*)    AS commits,
+                            0           AS issue_comments,
+                            TRIM('@' from cntrb_company) as organization
+                    FROM augur_data.commits
+                    INNER JOIN augur_data.contributors c
+                    ON c.cntrb_email = commits.cmt_author_raw_email
+                    WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
+                        AND cmt_author_raw_email IS NOT NULL
+                        AND cmt_committer_date BETWEEN :begin_date AND :end_date
+                    GROUP BY id, repo_id, organization)
+                    UNION ALL
+					(SELECT reporter_id	AS id,
+					 		repo_id,
+					 		0			AS issues,
+					 		0			AS commits,
+					 		count(*)	AS issue_comments,
+					 		TRIM('@' from cntrb_company) as organization
+					 FROM augur_data.issue_message_ref
+					 INNER JOIN augur_data.issues i
+					 ON i.issue_id = issue_message_ref.issue_id
+					 INNER JOIN augur_data.contributors c
+					 ON c.cntrb_id = i.reporter_id
+					 WHERE repo_id in (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
+                        AND reporter_id IS NOT NULL
+                        AND created_at BETWEEN :begin_date AND :end_date
+					 GROUP BY id, repo_id, organization)
+                ) a, augur_data.repo
+                WHERE a.repo_id = repo.repo_id
+                GROUP BY organization
+                ORDER BY total DESC
+        """)
+    results = pd.read_sql(contributors_organizationsSQL, self.database, params={'repo_group_id': repo_group_id, 'period': period, 
+                                                                                'begin_date': begin_date, 'end_date': end_date})
+    return results
+
 @annotate(tag='contributors')
 def contributors(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
     """
