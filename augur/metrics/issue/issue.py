@@ -32,9 +32,11 @@ def issue_messages_over_time(self, repo_group_id, repo_id=None, period='day', be
 		SUM(comment_count)	AS comments
 	FROM augur_data.issues issues
 		INNER JOIN augur_data.repo repo 
-		ON repo.repo_id = issues.repo_id
+			ON repo.repo_id = issues.repo_id
+		 INNER JOIN augur_data.issue_message_ref r
+                    	ON r.issue_id = issues.issue_id
 	WHERE repo_id = (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
-		AND issues.created_at 
+		AND r.data_collection_date_at 
 		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
 	GROUP BY issues.repo_id;
         """)
