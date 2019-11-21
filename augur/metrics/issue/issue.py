@@ -20,53 +20,51 @@ def issue_messages_over_time(self, repo_group_id, repo_id=None, period='week', b
     :param repo_group_id: The repository's group id
     """
     if not begin_date:
-        begin_date = datetime.datetime.today() - datetime.timedelta(days=60)
+        begin_date = (datetime.datetime.today() - datetime.timedelta(days=60))
     if not end_date:
         end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if repo_id:
-    	issue_messages_over_time_SQL = s.sql.text("""
-	SELECT 
-		date_trunc(:week, msh_timestamp::DATE) as message_creation_date,
-		COUNT(msg_id) as comments
-	FROM augur_data.issues issues
-		INNER JOIN augur_data.repo repo 
-			ON repo.repo_id = issues.repo_id
-		INNER JOIN augur_data.issue_message_ref r
-                    	ON r.issue_id = issues.issue_id
-		INNER JOIN augur_data.message m
-                   	ON m.msg_id = r.msg_id
-	WHERE repo_id = :repo_id
-		AND m.msg_timestamp 
-		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-	GROUP BY message_creation_date
-	ORDER BY message_creation_date
+        issue_messages_over_time_SQL = s.sql.text("""
+            SELECT 
+                date_trunc(:period, msh_timestamp::DATE) as message_creation_date,
+                COUNT(msg_id) as comments
+            FROM augur_data.issues issues
+                INNER JOIN augur_data.repo repo 
+                    ON repo.repo_id = issues.repo_id
+                INNER JOIN augur_data.issue_message_ref r
+                                ON r.issue_id = issues.issue_id
+                INNER JOIN augur_data.message m
+                            ON m.msg_id = r.msg_id
+            WHERE repo_id = :repo_id
+                AND m.msg_timestamp 
+                BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            GROUP BY message_creation_date
+            ORDER BY message_creation_date
         """)
 
-        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_group_id': repo_group_id, 'period':period,
-                                                                  'begin_date': begin_date, 'end_date':end_date})
-        return results
+        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_id': repo_id, 'period': period, 'begin_date': begin_date, 'end_date': end_date})
+    
     else:
         issue_messages_over_time_SQL = s.sql.text("""
-	SELECT 
-		date_trunc(:week, msh_timestamp::DATE) as message_creation_date,
-		COUNT(msg_id) as comments
-	FROM augur_data.issues issues
-		INNER JOIN augur_data.repo repo 
-			ON repo.repo_id = issues.repo_id
-		INNER JOIN augur_data.issue_message_ref r
-                    	ON r.issue_id = issues.issue_id
-		INNER JOIN augur_data.message m
-                   	ON m.msg_id = r.msg_id
-	WHERE repo_id = (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
-		AND m.msg_timestamp 
-		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-	GROUP BY message_creation_date
-	ORDER BY message_creation_date
+            SELECT 
+                date_trunc(:period, msh_timestamp::DATE) as message_creation_date,
+                COUNT(msg_id) as comments
+            FROM augur_data.issues issues
+                INNER JOIN augur_data.repo repo 
+                    ON repo.repo_id = issues.repo_id
+                INNER JOIN augur_data.issue_message_ref r
+                                ON r.issue_id = issues.issue_id
+                INNER JOIN augur_data.message m
+                            ON m.msg_id = r.msg_id
+            WHERE repo_id = (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
+                AND m.msg_timestamp 
+                BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+            GROUP BY message_creation_date
+            ORDER BY message_creation_date
         """)
-
-        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_group_id': repo_group_id, 'period':period,
-                                                                  'begin_date': begin_date, 'end_date':end_date})
-        return results
+        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_group_id': repo_id, 'period': period,
+                                                                        'begin_date': begin_date, 'end_date': end_date})
+    return results
 
 
 @annotate(tag='issues-first-response')
@@ -102,7 +100,7 @@ def issues_first_response(self, repo_group_id, repo_id=None, period='month', beg
             ORDER BY issue_creation_date
         """)
         results = pd.read_sql(issuesFirstReponseSQL, self.database, params={'repo_id': repo_id, 'period': period,
-                                                                        'begin_date': begin_date, 'end_date': end_date})
+                                                                        'begin_date': begin_date, 'end_date': end_date})                                                      
     else:
         issuesFirstReponseSQL = s.sql.text("""
             SELECT  date_trunc(:period, created_at::DATE) AS issue_creation_date, 
