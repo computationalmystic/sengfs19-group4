@@ -27,36 +27,20 @@ def issue_messages_over_time(self, repo_group_id, repo_id=None, period='day', be
     if not repo_id:
         issue_messages_over_time_SQL = s.sql.text("""
 	SELECT 
+		
+		
 		issues.repo_id, 
 		COUNT(issues.repo_id)	AS issues, 
 		SUM(comment_count)	AS comments
 	FROM augur_data.issues issues
 		INNER JOIN augur_data.repo repo 
 			ON repo.repo_id = issues.repo_id
-		 INNER JOIN augur_data.issue_message_ref r
+		INNER JOIN augur_data.issue_message_ref r
                     	ON r.issue_id = issues.issue_id
+		INNER JOIN augur_data.message m
+                   	ON m.msg_id = r.msg_id
 	WHERE repo_id = (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
-		AND r.data_collection_date_at 
-		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
-	GROUP BY issues.repo_id;
-        """)
-
-        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_group_id': repo_group_id, 'period':period,
-                                                                  'begin_date': begin_date, 'end_date':end_date})
-        return results
-
-    else:
-        issues_messages_over_time_SQL = s.sql.text("""
-            SELECT
-                SELECT 
-		issues.repo_id, 
-		COUNT(issues.repo_id)	AS issues, 
-		SUM(comment_count)	AS comments
-	FROM augur_data.issues issues
-		INNER JOIN augur_data.repo repo 
-		ON repo.repo_id = issues.repo_id
-	WHERE repo_id = :repo_id
-		AND issues.created_at 
+		AND m.msg_timestamp 
 		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
 	GROUP BY issues.repo_id;
         """)
