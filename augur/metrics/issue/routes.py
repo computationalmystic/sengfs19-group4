@@ -963,7 +963,3 @@ def create_issue_routes(server):
                     ]
     """
     server.addRepoGroupMetric(metrics.abandoned_issues, 'abandoned_issues')
-
-    server.addRepoGroupMetric(metrics.issues_first_response, 'issues-first-response')
-
-    server.addRepoMetric(metrics.issues_first_response, 'issues-first-response')
