@@ -7,6 +7,68 @@ import sqlalchemy as s
 import pandas as pd
 from augur.util import logger, annotate, add_metrics
 
+@annotate(tag='issue-messages-over-time')
+def issue_messages_over_time(self, repo_group_id, repo_id=None, period='week', begin_date=None, end_date=None):
+    """
+    Returns a list of Repos within the repo group, the number of issues within the last 60 days, and the number of messages 
+    on the issues
+    In this timeseries there is a dataframe for each repo in the repo_group
+    repo_id
+    issues
+    messages
+    
+    :param repo_group_id: The repository's group id
+    """
+    if not begin_date:
+        begin_date = datetime.datetime.today() - datetime.timedelta(days=60)
+    if not end_date:
+        end_date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if repo_id:
+    	issue_messages_over_time_SQL = s.sql.text("""
+	SELECT 
+		date_trunc(:week, msh_timestamp::DATE) as message_creation_date,
+		COUNT(msg_id) as comments
+	FROM augur_data.issues issues
+		INNER JOIN augur_data.repo repo 
+			ON repo.repo_id = issues.repo_id
+		INNER JOIN augur_data.issue_message_ref r
+                    	ON r.issue_id = issues.issue_id
+		INNER JOIN augur_data.message m
+                   	ON m.msg_id = r.msg_id
+	WHERE repo_id = :repo_id
+		AND m.msg_timestamp 
+		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+	GROUP BY message_creation_date
+	ORDER BY message_creation_date
+        """)
+
+        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_group_id': repo_group_id, 'period':period,
+                                                                  'begin_date': begin_date, 'end_date':end_date})
+        return results
+    else:
+        issue_messages_over_time_SQL = s.sql.text("""
+	SELECT 
+		date_trunc(:week, msh_timestamp::DATE) as message_creation_date,
+		COUNT(msg_id) as comments
+	FROM augur_data.issues issues
+		INNER JOIN augur_data.repo repo 
+			ON repo.repo_id = issues.repo_id
+		INNER JOIN augur_data.issue_message_ref r
+                    	ON r.issue_id = issues.issue_id
+		INNER JOIN augur_data.message m
+                   	ON m.msg_id = r.msg_id
+	WHERE repo_id = (SELECT repo_id FROM augur_data.repo WHERE repo_group_id=:repo_group_id)
+		AND m.msg_timestamp 
+		BETWEEN to_timestamp(:begin_date, 'YYYY-MM-DD HH24:MI:SS') AND to_timestamp(:end_date, 'YYYY-MM-DD HH24:MI:SS')
+	GROUP BY message_creation_date
+	ORDER BY message_creation_date
+        """)
+
+        results = pd.read_sql(issue_messages_over_time_SQL, self.database, params={'repo_group_id': repo_group_id, 'period':period,
+                                                                  'begin_date': begin_date, 'end_date':end_date})
+        return results
+
+
 @annotate(tag='issues-first-response')
 def issues_first_response(self, repo_group_id, repo_id=None, period='month', begin_date=None, end_date=None):
     #TODO: add timeseries period and begin/end dates to query
@@ -65,6 +127,7 @@ def issues_first_response(self, repo_group_id, repo_id=None, period='month', beg
         results = pd.read_sql(issuesFirstReponseSQL, self.database, params={'repo_group_id': repo_group_id, 'period': period,
                                                                         'begin_date': begin_date, 'end_date': end_date})
     return results
+
 
 @annotate(tag='issues-first-time-opened')
 def issues_first_time_opened(self, repo_group_id, repo_id=None, period='day', begin_date=None, end_date=None):
@@ -1116,7 +1179,6 @@ def abandoned_issues(self, repo_group_id, repo_id=None, period='day', begin_date
     results = pd.read_sql(abandonedSQL, self.database, params={'repo_id': repo_id, 'repo_group_id': repo_group_id, 'period': period,
                                                                  'begin_date': begin_date, 'end_date': end_date})
     return results
-    
 
 def create_issue_metrics(metrics):
     add_metrics(metrics, __name__)
