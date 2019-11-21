@@ -15,13 +15,12 @@ fi
 mkdir logs
 
 # backend
-util/scripts/install/backend.sh > logs/backend.log
-
-# nomos scanner for dosocs
-util/scripts/install/nomos.sh > logs/nomos.log 2>logs/nomos.err 
+util/scripts/install/backend.sh > logs/backend-install.log 2>logs/backend-install.err 
+echo "Back End Installation Complete!  Check logs/backend-installer.log and logs/backend-installer.err"
 
 # workers
 util/scripts/install/workers.sh >logs/workers.log 2>logs/workers.err 
+echo "Worker Installation Complete! Check logs/workers.log and logs/workers.err"
 
 # docs
 util/scripts/install/docs.sh
