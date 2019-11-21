@@ -8,6 +8,14 @@ def metrics():
     augur_app = augur.Application()
     return augur_app.metrics
 
+def test_issues_messages_over_time(metrics)
+    #repo group
+    assert metrics.contributors_organizations(20).iloc[0]['total'] > 0
+    #repo_id
+    assert metrics.contributors_organizations(20, repo_id).iloc[0]['total'] > 0
+    #begin date and end date
+    assert metrics.contributors(20, begin_date='2019-6-1 00:00:01',
+                                 
 def test_issues_new(metrics):
     #repo_id
     assert metrics.issues_new(23, 21403, period='year').iloc[0]['issues'] > 0
