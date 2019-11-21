@@ -340,3 +340,5 @@ def create_contributor_routes(server):
     server.addRepoGroupMetric(metrics.contributors_code_development, 'contributors-code-development')
 
     server.addRepoMetric(metrics.contributors_code_development, 'contributors-code-development')
+
+    server.addRepoGroupMetric(metrics.contributors_organizations, 'contributors-organizations')
