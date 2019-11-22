@@ -964,9 +964,9 @@ def create_issue_routes(server):
     """
     server.addRepoGroupMetric(metrics.abandoned_issues, 'abandoned_issues')
     
-    server.addRepoGroupMetric(metrics.issue_messages_over_time, 'issue_messages_over_time')
+    server.addRepoGroupMetric(metrics.issue_messages_over_time, 'issue-messages-over-time')
     
-    server.addRepoMetric(metrics.issue_messages_over_time, 'issue_messages_over_time')
+    server.addRepoMetric(metrics.issue_messages_over_time, 'issue-messages-over-time')
 
     server.addRepoGroupMetric(metrics.issues_first_response, 'issues-first-response')
 
