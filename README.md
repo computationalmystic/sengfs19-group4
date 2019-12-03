@@ -49,6 +49,21 @@ This work has been funded through the Alfred P. Sloan Foundation.
 
 ---------------------------------
 
+# Project deployment instructions
+1. Make sure Augur is installed and running based on the instructions provided here: https://oss-augur.readthedocs.io/en/master/getting-started/installation.html
+
+2. Make a pull request from our master branch at [https://github.com/computationalmystic/sengfs19-group4](https://github.com/computationalmystic/sengfs19-group4) and pull it into a branch of your choice.
+
+3. Next, checkout this branch.
+
+4. To access our API endpoints you will first need to start augur. Then you can access our endpoints from the following url's:
+    - <server address>:5000/api/unstable/repo-groups/<repo group id>/issue-messages-over-time
+    - <server address>:5000/api/unstable/repo-groups/<repo group id>/contributors-organizations
+    - <server address>:5000/api/unstable/repo-groups/<repo group id>/issues-first-response
+    
+    - <server address>:5000/api/unstable/repo-groups/<repo group id>/repos/<repo id>/issue-messages-over-time
+    - <server address>:5000/api/unstable/repo-groups/<repo group id>/repos/<repo id>/issue-messages-over-time
+
 # Contribution Goals:
 ## Purpose
 The CHAOSS working groups have outlined a number of questions about open source community health and activity. Augur’s answers to these questions are available in the form of GitHub api metrics. The number of the working groups’ proposed metrics exceeds the number of metrics that have been implemented in Augur. Our contribution aims to provide implementations for three metrics to further the goals of the CHAOSS organization and improve Augur’s insight-to-data ratio.
