@@ -8,6 +8,13 @@ def metrics():
     augur_app = augur.Application()
     return augur_app.metrics
 
+def test_contributors_organizations(metrics):
+    #repo group
+    assert metrics.contributors_organizations(20).iloc[0]['total'] > 0
+    #begin date and end date
+    assert metrics.contributors(20, begin_date='2019-6-1 00:00:01',
+                                 end_date='2019-06-10 23:59:59').iloc[0]['total'] > 0
+
 def test_contributors(metrics):
     # repo group
     assert metrics.contributors(20).iloc[0]['total'] > 0

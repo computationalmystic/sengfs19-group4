@@ -8,6 +8,27 @@ def metrics():
     augur_app = augur.Application()
     return augur_app.metrics
 
+def test_issue_messages_over_time(metrics)
+    #repo_group
+    assert metrics.issue_messages_over_time(20).iloc[0]['comments'] > 0
+    #repo_id
+    assert metrics.issue_messages_over_time(20, 25431).iloc[0]['comments'] > 0
+    #begin date
+    assert metrics.issue_messages_over_time(20, begin_date='2019-01-01- 00:00:01').iloc[0]['comments'] > 0
+     
+    
+def test_issue_first_response(metrics):
+    #repo_id
+    assert metrics.issues_first_response(20, 25431).iloc[0]['response_time']  > 0
+
+    #repo_group_id
+    assert metrics.issues_first_response(20).iloc[0]['response_time'] > 0
+
+    #begin date & end date
+    #TODO: To be implemented in the future when timeseries is working for issues_first_response
+    #assert metrics.issues_first_response(20, begin_date='1970-1-1 00:00:01',
+    #                             end_date='2019-06-10 23:59:59').iloc[0]['response_time'] > 0
+
 def test_issues_new(metrics):
     #repo_id
     assert metrics.issues_new(23, 21403, period='year').iloc[0]['issues'] > 0
