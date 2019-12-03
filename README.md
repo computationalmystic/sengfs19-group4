@@ -117,6 +117,7 @@ Relevant Data Tables:
 commits, contributors
 
 ---------------------------------------
+## Files Modified
 * Organizational diversity metric is added in augur/metrics/contributor/contibutor.py
 * Issue response time metric is added in augur/metrics/issue/issue.py
 * Issue messages over time metric is added in augur/metrics/issue/issue.py
