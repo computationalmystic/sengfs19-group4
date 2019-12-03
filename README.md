@@ -57,12 +57,12 @@ This work has been funded through the Alfred P. Sloan Foundation.
 3. Next, checkout this branch.
 
 4. To access our API endpoints you will first need to start augur. Then you can access our endpoints from the following url's:
-    - <server address>:5000/api/unstable/repo-groups/<repo group id>/issue-messages-over-time
-    - <server address>:5000/api/unstable/repo-groups/<repo group id>/contributors-organizations
-    - <server address>:5000/api/unstable/repo-groups/<repo group id>/issues-first-response
+    - {server address}:5000/api/unstable/repo-groups/{repo group id}/issue-messages-over-time
+    - {server address}:5000/api/unstable/repo-groups/{repo group id}/contributors-organizations
+    - {server address}:5000/api/unstable/repo-groups/{repo group id}/issues-first-response
     
-    - <server address>:5000/api/unstable/repo-groups/<repo group id>/repos/<repo id>/issue-messages-over-time
-    - <server address>:5000/api/unstable/repo-groups/<repo group id>/repos/<repo id>/issue-messages-over-time
+    - {server address}:5000/api/unstable/repo-groups/{repo group id}/repos/{repo id}/issue-messages-over-time
+    - {server address}:5000/api/unstable/repo-groups/{repo group id}/repos/{repo id}/issue-messages-over-time
 
 # Contribution Goals:
 ## Purpose
