@@ -67,10 +67,12 @@ Our architectural decisions are made to follow the rest of Augur’s API layer s
 
 ## Issue Messages Over Time
 Description
+
 The Issue Messages Over Time metric will look at the amount of messages on issues in each week since its beginning. This will allow users to view the amount of activity and communication on issues over time to make it more apparent what repositories are being worked on and how well they communicate.
 
 Architecture
 Endpoint
+
 This metric will exist as a metric function and metric endpoint within the Augur application. This metric will be available as both a repo and repo group metric. The repo group version will show the number of issue messages over all the repos in the group.
 A server.addRepoGroupMetric() function will be added to the Issue routes file to expose our endpoint.
 
@@ -82,10 +84,12 @@ issues, repo, message, issue_message_ref
 
 ## Issue Response Time
 Description
+
 The issue response time metric is common to the evolution, risk, and perhaps the D&I working groups. This repository-only metric returns a time series of the average time between an issue’s creation time and the time of its first comment. We think a visualization using this metric will help provide a measure of community communication health by showing trends and the ability to compare the current value against these trends.
 
 Architecture
 Endpoint
+
 This metric will exist as a metric function and metric endpoint within the Augur application. This metric will be available as both a repo and repo group metric. The repo group version would show the average response time for any issues for repos in the group.
 A server.addRepoGroupMetric() function will be added to the Issue routes file to expose our endpoint.
 Metric Function
@@ -98,10 +102,12 @@ repo, issue, message, issue_message_ref
 
 ## Organizational Distribution
 Description
+
 Organizational distribution is a metric that represents the ratio and number of contributions made by all of a project’s contributing organizations, including the organization that governs the project. This metric is closely related to elephant factor and thus falls under the risk working group in the business risk focus area. 
 
 Architecture
 Endpoint
+
 This metric will exist as a metric function and metric endpoint within the Augur application. Because the data will be relevant at both levels, our endpoint will be available for both individual repositories and repo groups.
 server.addRepoGroupMetric() and server.addRepoMetric() functions will be added to the Contributor routes file to expose our endpoint.
 Metric Function
