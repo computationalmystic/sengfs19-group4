@@ -116,3 +116,16 @@ The function operates by using the repo_group_id as a parameter to get all organ
 Relevant Data Tables:
 commits, contributors
 
+---------------------------------------
+* Organizational diversity metric is added in augur/metrics/contributor/contibutor.py
+* Issue response time metric is added in augur/metrics/issue/issue.py
+* Issue messages over time metric is added in augur/metrics/issue/issue.py
+
+The augur/metrics/issue/routes.py and augur/metrics/contributors/routes.py files were also modified to include the new functions.
+
+Test functions were added for 
+* Organizational diversity metric in augur/metrics/contributor/test_contributor_functions.py
+* Issue respone time metric in augur/metrics/issue/test_issue_functions.py
+* Issue messages over time metric in augur/metrics/issue/test_issue_functions.py
+
+The augur/metrics/issue/test_issue_routes.py and augur/metrics/contributors/test_contributors_routes.py files were also modified to include the new functions.
